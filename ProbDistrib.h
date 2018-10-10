@@ -14,11 +14,14 @@
 #ifndef PROBDISTRIB_H
 #define PROBDISTRIB_H
 
+#include <cmath>
+#include "Traits.h"
+
 class ProbDistrib {
 public:
 	static double uniform(double x, double min, double max);
 	static double exponential(double x, double mean);
-	static double erlang(double x, double mean, double M); // int M
+	static double erlang(double x, double mean, int M);
 	static double normal(double x, double mean, double stddev);
 	static double gamma(double x, double mean, double alpha);
 	static double beta(double x, double alpha, double beta);
