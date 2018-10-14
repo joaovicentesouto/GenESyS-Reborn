@@ -189,6 +189,11 @@
         <ccTool>
           <commandLine>-std=c++11 -fpermissive</commandLine>
         </ccTool>
+        <linkerTool>
+          <linkerDynSerch>
+            <pElem>.</pElem>
+          </linkerDynSerch>
+        </linkerTool>
       </compileType>
       <item path="Assign.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -438,6 +443,11 @@
         <asmTool>
           <developmentMode>5</developmentMode>
         </asmTool>
+        <linkerTool>
+          <linkerDynSerch>
+            <pElem>.</pElem>
+          </linkerDynSerch>
+        </linkerTool>
       </compileType>
       <item path="Assign.cpp" ex="false" tool="1" flavor2="0">
       </item>
