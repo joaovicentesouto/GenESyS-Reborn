@@ -28,20 +28,20 @@ void testStudentSoftwareDevelopments() {
 		collector->addValue(value);
 	}
 
-	// generate statistics about that datafile 
-	Statistics_if* statistics = new Traits<Statistics_if>::Implementation();
-	statistics->setCollector(collector); //setDataFilename(collector->getDataFilename());
-	double statVal;
-	statVal = statistics->numElements();
-	statVal = statistics->average();
-	statVal = statistics->stddeviation();
-	statVal = statistics->halfWidthConfidenceInterval(0.05);
-	statVal = statistics->quartil(2);
-	statVal = statistics->mediane();
-	unsigned int numclasses = statistics->histogramNumClasses();
-	for (unsigned int i = 0; i < numclasses; i++) {
-		statVal = statistics->histogramClassFrequency(i);
-	}
+//	// generate statistics about that datafile 
+//	Statistics_if* statistics = new Traits<Statistics_if>::Implementation();
+//	statistics->setCollector(collector); //setDataFilename(collector->getDataFilename());
+//	double statVal;
+//	statVal = statistics->numElements();
+//	statVal = statistics->average();
+//	statVal = statistics->stddeviation();
+//	statVal = statistics->halfWidthConfidenceInterval(0.05);
+//	statVal = statistics->quartil(2);
+//	statVal = statistics->mediane();
+//	unsigned int numclasses = statistics->histogramNumClasses();
+//	for (unsigned int i = 0; i < numclasses; i++) {
+//		statVal = statistics->histogramClassFrequency(i);
+//	}
 
 	// fit datafile to different probability distributions
 	Fitter_if* fitter = simulator->getFitter();
@@ -54,30 +54,30 @@ void testStudentSoftwareDevelopments() {
 	fitter->fitTriangular(&sqrerror, &p1, &p2, &p3);
 	fitter->fitNormal(&sqrerror, &p1, &p2);
 	fitter->fitAll(&sqrerror, &distribName);
-
-	// get some values from the PDF (Probability Density Functions)
-	value = ProbDistrib::uniform(0.25, 0.0, 1.0);
-	value = ProbDistrib::uniform(0.5, 0.0, 1.0); // should return the same value than above
-	value = ProbDistrib::uniform(0.75, 0.0, 1.0); // should return the same value than above
-	value = ProbDistrib::normal(10.0, 50.0, 20.0);
-	value = ProbDistrib::normal(30.0, 50.0, 20.0); // should return a greater value than above
-	value = ProbDistrib::normal(50.0, 50.0, 20.0); // should return a greater value than above
-
-	// calculate some integrals just for fun
-	Integrator_if* integrator = new Traits<Integrator_if>::Implementation();
-	value = integrator->integrate(0.0, 0.4, &ProbDistrib::uniform, 0.0, 0.1); // should return 0.4
-	value = integrator->integrate(0.0, 100, &ProbDistrib::normal, 100, 10); // should return 0.5
-
-	// Test some hypothesis about the datafile
-	HypothesisTester_if* tester = new Traits<HypothesisTester_if>::Implementation();
-	tester->setDataFilename(collector->getDataFilename());
-	res = tester->testAverage(0.95, 5500, HypothesisTester_if::GREATER_THAN);
-	res = tester->testAverage(0.95, 4500, HypothesisTester_if::LESS_THAN);
-	res = tester->testAverage(0.95, 3000, HypothesisTester_if::EQUAL);
-	res = tester->testAverage(0.95, 5000, HypothesisTester_if::EQUAL);
-	res = tester->testAverage(0.95, 5100, HypothesisTester_if::DIFFERENT);
-	res = tester->testVariance(0.95, 350 * 350, HypothesisTester_if::EQUAL);
-	res = tester->testVariance(0.95, 350 * 350, HypothesisTester_if::LESS_THAN);
+//
+//	// get some values from the PDF (Probability Density Functions)
+//	value = ProbDistrib::uniform(0.25, 0.0, 1.0);
+//	value = ProbDistrib::uniform(0.5, 0.0, 1.0); // should return the same value than above
+//	value = ProbDistrib::uniform(0.75, 0.0, 1.0); // should return the same value than above
+//	value = ProbDistrib::normal(10.0, 50.0, 20.0);
+//	value = ProbDistrib::normal(30.0, 50.0, 20.0); // should return a greater value than above
+//	value = ProbDistrib::normal(50.0, 50.0, 20.0); // should return a greater value than above
+//
+//	// calculate some integrals just for fun
+//	Integrator_if* integrator = new Traits<Integrator_if>::Implementation();
+//	value = integrator->integrate(0.0, 0.4, &ProbDistrib::uniform, 0.0, 0.1); // should return 0.4
+//	value = integrator->integrate(0.0, 100, &ProbDistrib::normal, 100, 10); // should return 0.5
+//
+//	// Test some hypothesis about the datafile
+//	HypothesisTester_if* tester = new Traits<HypothesisTester_if>::Implementation();
+//	tester->setDataFilename(collector->getDataFilename());
+//	res = tester->testAverage(0.95, 5500, HypothesisTester_if::GREATER_THAN);
+//	res = tester->testAverage(0.95, 4500, HypothesisTester_if::LESS_THAN);
+//	res = tester->testAverage(0.95, 3000, HypothesisTester_if::EQUAL);
+//	res = tester->testAverage(0.95, 5000, HypothesisTester_if::EQUAL);
+//	res = tester->testAverage(0.95, 5100, HypothesisTester_if::DIFFERENT);
+//	res = tester->testVariance(0.95, 350 * 350, HypothesisTester_if::EQUAL);
+//	res = tester->testVariance(0.95, 350 * 350, HypothesisTester_if::LESS_THAN);
 
 }
 

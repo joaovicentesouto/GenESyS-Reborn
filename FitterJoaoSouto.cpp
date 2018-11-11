@@ -13,48 +13,66 @@
 
 #include "FitterJoaoSouto.h"
 
-void FitterJoaoSouto::initStats()
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <functional>
+#include <cmath>
+#include <vector>
+
+#include "Traits.h"
+#include "ProbDistrib.h"
+
+template<typename F, typename ... Args>
+double FitterJoaoSouto::square_error(F f, Args ... args)
 {
-    delete _stats;
-    delete _collector;
-    
+    double error = 0;
+    double range = (_stats->max() - _stats->min()) / _stats->histogramNumClasses();
+    double i = _stats->min();
+    double j = i + range;
+    double total_elements = _stats->numElements();
+
+    Traits<Integrator_if>::Implementation integrator;
+
+    for (auto c = 0; c < _stats->histogramNumClasses(); c++, i = j, j += range)
+    {
+        double area = integrator.integrate(i, j, f, args...);
+        error += pow(_stats->histogramClassFrequency(c) - area * total_elements, 2);
+    }
+
+    return error;
+}
+
+FitterJoaoSouto::FitterJoaoSouto()
+{
     _collector = new Traits<Collector_if>::Implementation();
-    _collector->setDataFilename(_dataFilename);
-    
     _stats = new Traits<Statistics_if>::Implementation();
     _stats->setCollector(_collector);
 }
 
+FitterJoaoSouto::~FitterJoaoSouto()
+{
+    //! Não é possível deletar o ponteiro porque a interface não
+    //! possui um destrutor virtual implementado!!!
+//    delete _stats;
+//    delete _collector;
+}
+
 bool FitterJoaoSouto::isNormalDistributed(double confidencelevel)
 {
-    std::ofstream output("./NormalDistributionSample.txt", std::ios::out);
-
-    if (!output.is_open())
-        throw std::out_of_range("Could not open file!");
-
-    Traits<Sampler_if>::Implementation sampler;
-
-    for (int i = 0; i < 1000; i++)
-        output << sampler.sampleUniform(10, 20) << std::endl;
-
-    output.close();
+    double sqrerror, avg, stddev;
+    
+    fitNormal(&sqrerror, &avg, &stddev);
 
     Traits<HypothesisTester_if>::Implementation tester;
-    tester.setDataFilename("./NormalDistributionSample.txt");
-
-    bool result = tester.testAverage(confidencelevel, _dataFilename, HypothesisTester_if::EQUAL)
-      && tester.testVariance(confidencelevel, _dataFilename, HypothesisTester_if::EQUAL);
-
-    std::remove("./NormalDistributionSample.txt");
-
-    return result;
+    tester.setDataFilename(_collector->getDataFilename());
+    
+    return tester.testAverage(confidencelevel, avg, HypothesisTester_if::EQUAL)
+      && tester.testVariance(confidencelevel, stddev, HypothesisTester_if::EQUAL);
 }
 
 void FitterJoaoSouto::fitUniform(double *sqrerror, double *min, double *max)
 {
-    if (!_stats)
-        initStats();
-
     *min = _stats->min();
     *max = _stats->max();
     *sqrerror = square_error(ProbDistrib::uniform, *min, *max);
@@ -62,9 +80,6 @@ void FitterJoaoSouto::fitUniform(double *sqrerror, double *min, double *max)
 
 void FitterJoaoSouto::fitTriangular(double *sqrerror, double *min, double *mo, double *max)
 {
-    if (!_stats)
-        initStats();
-
     *min = _stats->min();
     *mo  = _stats->mode();
     *max = _stats->max();
@@ -73,9 +88,6 @@ void FitterJoaoSouto::fitTriangular(double *sqrerror, double *min, double *mo, d
 
 void FitterJoaoSouto::fitNormal(double *sqrerror, double *avg, double *stddev)
 {
-    if (!_stats)
-        initStats();
-
     *avg      = _stats->average();
     *stddev   = _stats->stddeviation();
     *sqrerror = square_error(ProbDistrib::normal, *avg, *stddev);
@@ -83,29 +95,19 @@ void FitterJoaoSouto::fitNormal(double *sqrerror, double *avg, double *stddev)
 
 void FitterJoaoSouto::fitExpo(double *sqrerror, double *avg1)
 {
-    if (!_stats)
-        initStats();
-
     *avg1 = _stats->average();
     *sqrerror = square_error(ProbDistrib::exponential, *avg1);
 }
 
 void FitterJoaoSouto::fitErlang(double *sqrerror, double *avg, int *m)
 {
-    if (!_stats)
-        initStats();
-
     *avg = _stats->average();
-    *m = *avg * std::pow(*avg / _stats->stddeviation(), 2);
-    
+    *m = *avg * std::pow(*avg / _stats->stddeviation(), 2);   
     *sqrerror = square_error(ProbDistrib::erlang, *avg, *m);
 }
 
 void FitterJoaoSouto::fitBeta(double *sqrerror, double *alpha, double *beta, double *infLimit, double *supLimit)
 {
-    if (!_stats)
-        initStats();
-
     *infLimit = _stats->min();
     *supLimit = _stats->max();
 
@@ -120,9 +122,6 @@ void FitterJoaoSouto::fitBeta(double *sqrerror, double *alpha, double *beta, dou
 
 void FitterJoaoSouto::fitWeibull(double *sqrerror, double *alpha, double *scale)
 {
-    if (!_stats)
-        initStats();
-    
     double avg = _stats->average();
     double dev = _stats->stddeviation();
     
@@ -183,15 +182,10 @@ void FitterJoaoSouto::fitAll(double *sqrerror, std::string *name)
 
 void FitterJoaoSouto::setDataFilename(std::string dataFilename)
 {
-    delete _stats;
-    delete _collector;
-    
-    _stats = nullptr;
-    _collector = nullptr;
-    _dataFilename = dataFilename;
+    _collector->setDataFilename(dataFilename);
 }
 
 std::string FitterJoaoSouto::getDataFilename()
 {
-    return _dataFilename;
+    return _collector->getDataFilename();
 }

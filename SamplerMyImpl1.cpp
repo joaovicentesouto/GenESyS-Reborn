@@ -57,7 +57,7 @@ double SamplerMyImpl1::sampleDiscrete(double value, double acumProb, ...) {
 }
 
 void SamplerMyImpl1::setRNGparameters(Sampler_if::RNG_Parameters* param){
-	_param =  param;
+//	_param =  param;
 }
 
 Sampler_if::RNG_Parameters* SamplerMyImpl1::getRNGparameters() const {
