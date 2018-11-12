@@ -38,12 +38,36 @@ public:
     std::string getDataFilename();
 
 private:
-    template<typename F, typename ... Args>
+    template<typename Integrator, typename F, typename ... Args>
     double square_error(F f, Args ... args);
 
 private:
     Statistics_if * _stats{nullptr};
     CollectorDatafile_if * _collector{nullptr};
 };
+
+#include <cmath>
+
+template<typename Integrator, typename F, typename ... Args>
+double FitterJoaoSouto::square_error(F f, Args ... args)
+{
+    double error = 0;
+    double range = (_stats->max() - _stats->min()) / _stats->histogramNumClasses();
+    double i = _stats->min();
+    double j = i + range;
+    double total_elements = _stats->numElements();
+
+    Integrator integrator;
+
+    for (auto c = 0; c < _stats->histogramNumClasses(); c++, i = j, j += range)
+    {
+        double observed_frequency = _stats->histogramClassFrequency(c);
+        double expected_frequency = integrator.integrate(i, j, f, args...) * total_elements;
+        
+        error += pow(observed_frequency - expected_frequency, 2) / expected_frequency;
+    }
+
+    return error;
+}
 
 #endif /* FITTERJOAOSOUTO_H */

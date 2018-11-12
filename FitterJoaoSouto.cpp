@@ -13,8 +13,6 @@
 
 #include "FitterJoaoSouto.h"
 
-#include <iostream>
-#include <fstream>
 #include <string>
 #include <functional>
 #include <cmath>
@@ -22,26 +20,6 @@
 
 #include "Traits.h"
 #include "ProbDistrib.h"
-
-template<typename F, typename ... Args>
-double FitterJoaoSouto::square_error(F f, Args ... args)
-{
-    double error = 0;
-    double range = (_stats->max() - _stats->min()) / _stats->histogramNumClasses();
-    double i = _stats->min();
-    double j = i + range;
-    double total_elements = _stats->numElements();
-
-    Traits<Integrator_if>::Implementation integrator;
-
-    for (auto c = 0; c < _stats->histogramNumClasses(); c++, i = j, j += range)
-    {
-        double area = integrator.integrate(i, j, f, args...);
-        error += pow(_stats->histogramClassFrequency(c) - area * total_elements, 2);
-    }
-
-    return error;
-}
 
 FitterJoaoSouto::FitterJoaoSouto()
 {
@@ -57,6 +35,17 @@ FitterJoaoSouto::~FitterJoaoSouto()
 //    delete _stats;
 //    delete _collector;
 }
+
+//double x_square_function(double confidencelevel, double graus) {
+//    Traits<Integrator_if>::Implementation integrator;
+//    
+//    //! Função Qui-quadrado
+//    auto x_square = [](double x, double g){
+//        return (1 / (pow(2, g/2) * std::tgamma(g/2))) * pow(x, g/2 - 1) * exp(-x/2);
+//    };
+//    
+//    return integrator.integrate(i, j, x_square, graus);
+//}
 
 bool FitterJoaoSouto::isNormalDistributed(double confidencelevel)
 {
@@ -75,7 +64,7 @@ void FitterJoaoSouto::fitUniform(double *sqrerror, double *min, double *max)
 {
     *min = _stats->min();
     *max = _stats->max();
-    *sqrerror = square_error(ProbDistrib::uniform, *min, *max);
+    *sqrerror = square_error<Traits<Integrator_if>::Implementation>(ProbDistrib::uniform, *min, *max);
 }
 
 void FitterJoaoSouto::fitTriangular(double *sqrerror, double *min, double *mo, double *max)
@@ -83,27 +72,27 @@ void FitterJoaoSouto::fitTriangular(double *sqrerror, double *min, double *mo, d
     *min = _stats->min();
     *mo  = _stats->mode();
     *max = _stats->max();
-    *sqrerror = square_error(ProbDistrib::triangular, *min, *mo, *max);
+    *sqrerror = square_error<Traits<Integrator_if>::Implementation>(ProbDistrib::triangular, *min, *mo, *max);
 }
 
 void FitterJoaoSouto::fitNormal(double *sqrerror, double *avg, double *stddev)
 {
     *avg      = _stats->average();
     *stddev   = _stats->stddeviation();
-    *sqrerror = square_error(ProbDistrib::normal, *avg, *stddev);
+    *sqrerror = square_error<Traits<Integrator_if>::Implementation>(ProbDistrib::normal, *avg, *stddev);
 }
 
 void FitterJoaoSouto::fitExpo(double *sqrerror, double *avg1)
 {
     *avg1 = _stats->average();
-    *sqrerror = square_error(ProbDistrib::exponential, *avg1);
+    *sqrerror = square_error<Traits<Integrator_if>::Implementation>(ProbDistrib::exponential, *avg1);
 }
 
 void FitterJoaoSouto::fitErlang(double *sqrerror, double *avg, int *m)
 {
     *avg = _stats->average();
     *m = *avg * std::pow(*avg / _stats->stddeviation(), 2);   
-    *sqrerror = square_error(ProbDistrib::erlang, *avg, *m);
+    *sqrerror = square_error<Traits<Integrator_if>::Implementation>(ProbDistrib::erlang, *avg, *m);
 }
 
 void FitterJoaoSouto::fitBeta(double *sqrerror, double *alpha, double *beta, double *infLimit, double *supLimit)
@@ -117,7 +106,7 @@ void FitterJoaoSouto::fitBeta(double *sqrerror, double *alpha, double *beta, dou
     *alpha = ((1 - avg) / std::pow(dev, 2) - 1 / avg) * std::pow(avg, 2);
     *beta = *alpha * (1 / avg - 1);
 
-    *sqrerror = square_error(ProbDistrib::beta, *alpha, *beta);
+    *sqrerror = square_error<Traits<Integrator_if>::Implementation>(ProbDistrib::beta, *alpha, *beta);
 }
 
 void FitterJoaoSouto::fitWeibull(double *sqrerror, double *alpha, double *scale)
@@ -128,7 +117,7 @@ void FitterJoaoSouto::fitWeibull(double *sqrerror, double *alpha, double *scale)
     *alpha = std::pow(dev / avg, -1.086);
     *scale = avg / std::tgamma(1 + 1 / *alpha);
     
-    *sqrerror = square_error(ProbDistrib::weibull, *alpha, *scale);
+    *sqrerror = square_error<Traits<Integrator_if>::Implementation>(ProbDistrib::weibull, *alpha, *scale);
 }
 
 void FitterJoaoSouto::fitAll(double *sqrerror, std::string *name)
